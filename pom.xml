@@ -1,0 +1,58 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.moparisthebest</groupId>
+    <artifactId>filelists</artifactId>
+    <version>0.0.1</version>
+    <packaging>jar</packaging>
+
+    <name>filelists</name>
+    <description>
+        filelists
+    </description>
+    <url>https://github.com/moparisthebest/filelists</url>
+
+    <dependencies>
+
+    </dependencies>
+
+    <developers>
+        <developer>
+            <name>Travis Burtrum</name>
+            <url>http://www.moparisthebest.com/</url>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>GNU LESSER GENERAL PUBLIC LICENSE, Version 3</name>
+            <url>http://www.gnu.org/licenses/lgpl.html</url>
+        </license>
+    </licenses>
+
+    <build>
+    <defaultGoal>compile</defaultGoal>
+    <finalName>${project.artifactId}</finalName>
+    <plugins>
+    <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+            <debug>true</debug>
+            <compilerArgs>
+                <arg>-Xlint</arg>
+            </compilerArgs>
+        </configuration>
+    </plugin>
+    </plugins>
+    </build>
+
+    <scm>
+        <developerConnection>scm:git:git@github.com:moparisthebest/filelists.git</developerConnection>
+        <connection>scm:git:git@github.com:moparisthebest/filelists.git</connection>
+        <url>git@github.com:moparisthebest/filelists.git</url>
+    </scm>
+</project>
