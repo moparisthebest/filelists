@@ -102,7 +102,8 @@ public class RandomAccessFileList<T> extends AbstractList<T> {
     public void sort(final Comparator<? super T> c) {
         try {
             //this.selectionSort(c);
-            this.inPlaceMergeSort(c);
+            //this.inPlaceMergeSort(c);
+            this.heapSort(c);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -224,5 +225,63 @@ public class RandomAccessFileList<T> extends AbstractList<T> {
             }
         }
         // Whatever remains in [rt..last] is in place
+    }
+
+    public void heapSort(final Comparator<? super T> c) throws IOException {
+        long n = this.longSize();
+        final byte[] tmp = new byte[this.buffer.length];
+
+        for (long k = n/2; k > 0; k--) {
+            downheap(c, tmp, k, n);
+        }
+        do {
+            // swap 0 and n - 1
+            n = n - 1;
+
+            // grab 0 to tmp
+            raf.seek(0);
+            if (raf.read(tmp) != buffer.length)
+                throw new IOException("no full buffer to read, corrupted file?");
+
+            // grab n - 1 to buffer
+            raf.seek(n * buffer.length);
+            if (raf.read(buffer) != buffer.length)
+                throw new IOException("no full buffer to read, corrupted file?");
+
+            // write tmp to n - 1
+            raf.seek(n * buffer.length);
+            raf.write(tmp);
+
+            // write buffer to 0
+            raf.seek(0);
+            raf.write(buffer);
+
+
+            downheap(c, tmp, 1, n);
+        } while (n > 1);
+    }
+
+    private void downheap(final Comparator<? super T> c, final byte[] tmp, long k, final long n) throws IOException {
+        final T t = this.get(k - 1);
+        // save k - 1 to tmp, already in buffer
+        System.arraycopy(buffer, 0, tmp, 0, buffer.length);
+
+        while (k <= n/2) {
+            long j = k + k;
+            if ((j < n) && (c.compare(this.get(j - 1), this.get(j)) < 0)) {
+                ++j;
+            }
+            if (c.compare(t, this.get(j - 1)) >= 0) {
+                break;
+            } else {
+                // write j - 1 to k - 1, already in buffer from last this.get(j - 1) above
+                raf.seek((k - 1) * buffer.length);
+                raf.write(buffer);
+                k = j;
+            }
+        }
+        // write tmp to k - 1
+        raf.seek((k - 1) * buffer.length);
+        raf.write(tmp);
     }
 }
