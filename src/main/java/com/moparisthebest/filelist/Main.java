@@ -1,6 +1,7 @@
 package com.moparisthebest.filelist;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -11,7 +12,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         System.out.println("str " + new Date());
         //final List<Long> list = new RandomAccessFileList<>("/home/mopar/raf2.list", new UnsignedLongConverter(5));
-        final List<Long> list = new RandomAccessFileList<>("/home/mopar/raf2.list", LongConverter40Bit.instance);
+        final List<Long> list = new RandomAccessFileList<>("/home/mopar/raf2.list", LongConverter40Bit.instance); list.clear();
         /*
         System.out.println(list.get(0));
         System.out.println(((RandomAccessFileList)list).longSize());
@@ -35,14 +36,18 @@ public class Main {
         list.add(99999999999L);
         System.out.println(list.get(1));
         list.add(6L);
+        list.add(4L);
         System.out.println(list);
-        for(long l : list)
-            System.out.println(l);
         list.sort(Long::compareTo);
         System.out.println(list);
+        System.out.println("------");
+        //if(true) return;
         for(long l = 0; l < 1000; ++l)
+        //for(long l = 7; l < 11; ++l)
             list.add(l);
+        System.out.println(list);
         list.sort(Long::compareTo);
+        list.sort(Comparator.reverseOrder());
         System.out.println(list);
     }
 }
