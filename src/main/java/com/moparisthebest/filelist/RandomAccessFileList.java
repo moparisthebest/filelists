@@ -9,13 +9,14 @@ import java.util.*;
 /**
  * Created by mopar on 2/9/17.
  */
-public class RandomAccessFileList<T> extends AbstractList<T> {
+public class RandomAccessFileList<T> extends AbstractList<T> implements AutoCloseable {
 
     private final RandomAccessFile raf;
     private final byte[] buffer;
     private final ByteArrayConverter<T> bac;
+    private final boolean close;
 
-    public RandomAccessFileList(final RandomAccessFile raf, final ByteArrayConverter<T> bac) {
+    private RandomAccessFileList(final RandomAccessFile raf, final boolean close, final ByteArrayConverter<T> bac) {
         Objects.requireNonNull(raf);
         Objects.requireNonNull(bac);
         if (bac.numBytes() < 1)
@@ -23,14 +24,25 @@ public class RandomAccessFileList<T> extends AbstractList<T> {
         this.raf = raf;
         this.buffer = new byte[bac.numBytes()];
         this.bac = bac;
+        this.close = close;
+    }
+
+    public RandomAccessFileList(final RandomAccessFile raf, final ByteArrayConverter<T> bac) {
+        this(raf, false, bac);
     }
 
     public RandomAccessFileList(final String name, final ByteArrayConverter<T> bac) throws FileNotFoundException {
-        this(new RandomAccessFile(name, "rw"), bac);
+        this(new RandomAccessFile(name, "rw"), true, bac);
     }
 
     public RandomAccessFileList(final File file, final ByteArrayConverter<T> bac) throws FileNotFoundException {
-        this(new RandomAccessFile(file, "rw"), bac);
+        this(new RandomAccessFile(file, "rw"), true, bac);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if(close)
+            raf.close();
     }
 
     public T get(final int index) {
@@ -45,7 +57,7 @@ public class RandomAccessFileList<T> extends AbstractList<T> {
         raf.seek(index * buffer.length);
         if (raf.read(buffer) != buffer.length)
             throw new IOException("no full buffer to read, corrupted file?");
-        return bac.fromBytes(buffer);
+        return bac.fromBytes(buffer, 0);
     }
 
     public int size() {
@@ -64,7 +76,7 @@ public class RandomAccessFileList<T> extends AbstractList<T> {
     public boolean add(final T o) {
         try {
             raf.seek(raf.length());
-            bac.toBytes(o, buffer);
+            bac.toBytes(o, buffer, 0);
             raf.write(buffer);
             return true;
         } catch (IOException e) {
@@ -84,7 +96,7 @@ public class RandomAccessFileList<T> extends AbstractList<T> {
     public T set(final long index, final T o) throws IOException {
         final T ret = get(index);
         raf.seek(index * buffer.length);
-        bac.toBytes(o, buffer);
+        bac.toBytes(o, buffer, 0);
         raf.write(buffer);
         return ret;
     }
@@ -96,6 +108,60 @@ public class RandomAccessFileList<T> extends AbstractList<T> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public <K> long indexedBinarySearch(final K key, final TransformComparator<K, ? super T> c) throws IOException {
+        long low = 0;
+        long high = this.longSize()-1;
+
+        while (low <= high) {
+            final long mid = (low + high) >>> 1;
+            final T midVal = this.get(mid);
+            final int cmp = c.compareTransform(key, midVal);
+
+            if (cmp > 0)
+                low = mid + 1;
+            else if (cmp < 0)
+                high = mid - 1;
+            else
+                return mid; // key found
+        }
+        return -(low + 1);  // key not found
+    }
+
+    public <K> long iteratorBinarySearch(final K key, final TransformComparator<K, ? super T> c) throws IOException {
+        long low = 0;
+        long high = this.longSize()-1;
+        ListIterator<? extends T> i = this.listIterator();
+
+        while (low <= high) {
+            final long mid = (low + high) >>> 1;
+            final T midVal = get(i, mid);
+            final int cmp = c.compareTransform(key, midVal);
+
+            if (cmp > 0)
+                low = mid + 1;
+            else if (cmp < 0)
+                high = mid - 1;
+            else
+                return mid; // key found
+        }
+        return -(low + 1);  // key not found
+    }
+
+    private T get(final ListIterator<? extends T> i, final long index) {
+        T obj = null;
+        int pos = i.nextIndex();
+        if (pos <= index) {
+            do {
+                obj = i.next();
+            } while (pos++ < index);
+        } else {
+            do {
+                obj = i.previous();
+            } while (--pos > index);
+        }
+        return obj;
     }
 
     @Override

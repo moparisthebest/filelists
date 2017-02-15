@@ -17,17 +17,17 @@ public class UnsignedLongConverter implements ByteArrayConverter<Long> {
     }
 
     @Override
-    public Long fromBytes(final byte[] buffer) {
+    public Long fromBytes(final byte[] buffer, final int off) {
         long l = 0;
-        for(int x = buffer.length - 1, y = (buffer.length * 8) - 8; x >= 0; --x, y = y - 8) {
+        for(int x = this.numBytes - 1, y = (this.numBytes * 8) - 8; x >= off; --x, y = y - 8) {
             l |= (((long) buffer[x] & 0xFFL) << y);
         }
         return l;
     }
 
     @Override
-    public void toBytes(final Long l, final byte[] buffer) {
-        for(int x = 0, y = 0; x < buffer.length; ++x, y = y + 8) {
+    public void toBytes(final Long l, final byte[] buffer, final int off) {
+        for(int x = off, y = 0; x < this.numBytes; ++x, y = y + 8) {
             buffer[x] = (byte) ((l >> y) & 0xFF);
         }
     }

@@ -4,7 +4,7 @@
 
     <groupId>com.moparisthebest</groupId>
     <artifactId>filelists</artifactId>
-    <version>0.0.1</version>
+    <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>filelists</name>

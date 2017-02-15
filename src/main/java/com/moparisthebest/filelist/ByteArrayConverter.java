@@ -5,6 +5,6 @@ package com.moparisthebest.filelist;
  */
 public interface ByteArrayConverter<T> {
     int numBytes();
-    T fromBytes(final byte[] buff);
-    void toBytes(final T o, final byte[] buff);
+    T fromBytes(final byte[] buff, final int off);
+    void toBytes(final T o, final byte[] buff, final int off);
 }
